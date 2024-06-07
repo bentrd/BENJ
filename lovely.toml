@@ -1,0 +1,12 @@
+[manifest]
+version = "1.0.0"
+dump_lua = true
+priority = 0
+
+[[patches]]
+[patches.pattern]
+target = "functions/UI_definitions.lua"
+pattern = "G.FUNCS.DT_add_money = function() if G.STAGE == G.STAGES.RUN then ease_dollars(10) end end"
+position = "at"
+payload = "G.FUNCS.DT_add_money = function() if G.STAGE == G.STAGES.RUN then ease_dollars(1000) end end"
+match_indent = true

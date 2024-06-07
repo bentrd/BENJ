@@ -1,0 +1,70 @@
+[manifest]
+version = "1.0.0"
+dump_lua = true
+priority = 0
+
+# Tempered Glass prevent glass shatter
+[[patches]]
+[patches.pattern]
+target = "functions/state_events.lua"
+pattern = "if scoring_hand[i].ability.name == 'Glass Card' and not scoring_hand[i].debuff and pseudorandom('glass') < G.GAME.probabilities.normal/scoring_hand[i].ability.extra then"
+position = "at"
+payload = '''
+local skip_breakage = false
+for j = 1, #G.jokers.cards do if G.jokers.cards[j].ability.name == "Tempered Glass" then skip_breakage = true end end
+if scoring_hand[i].ability.name == 'Glass Card' and not scoring_hand[i].debuff and pseudorandom('glass') < G.GAME.probabilities.normal/scoring_hand[i].ability.extra and not skip_breakage then
+'''
+match_indent = true
+
+# When Cavendish goes extinct set the flag for Ripened Dish
+[[patches]]
+[patches.pattern]
+target = "card.lua"
+pattern = "if self.ability.name == 'Gros Michel' then G.GAME.pool_flags.gros_michel_extinct = true end"
+position = "after"
+payload = "if self.ability.name == 'Cavendish' then G.GAME.pool_flags.cavendish_extinct = true end"
+match_indent = true
+
+# Pancakes
+[[patches]]
+[patches.pattern]
+target = 'blind.lua'
+pattern = "if v.facing == 'back' then v:flip() end"
+position = 'before'
+payload = "if v.ability.name == 'Pancakes' then goto continue end"
+match_indent = true
+[[patches]]
+[patches.pattern]
+target = 'blind.lua'
+pattern = "if v.facing == 'back' then v:flip() end"
+position = 'after'
+payload = "::continue::"
+match_indent = true
+[[patches]]
+[patches.pattern]
+target = 'blind.lua'
+pattern = "v:flip()"
+position = 'before'
+payload = "if v.ability.name == 'Pancakes' then v.ability.extra.flipped = not v.ability.extra.flipped end"
+match_indent = true
+[[patches]]
+[patches.pattern]
+target = 'card.lua'
+pattern = "self.sell_cost_label = self.facing == 'back' and '?' or self.sell_cost"
+position = 'at'
+payload = "self.sell_cost_label = (self.facing == 'back' and not self.ability.name == 'Pancakes') and '?' or self.sell_cost"
+match_indent = true
+[[patches]]
+[patches.pattern]
+target = 'card.lua'
+pattern = "if self.facing == 'back' then"
+position = 'at'
+payload = "if self.facing == 'back' and not self.ability.name == 'Pancakes' then"
+match_indent = true
+[[patches]]
+[patches.pattern]
+target = 'card.lua'
+pattern = "if self.facing == 'front' and (not self.states.drag.is or G.CONTROLLER.HID.touch) and not self.no_ui and not G.debug_tooltip_toggle then"
+position = 'at'
+payload = "if (self.facing == 'front' or self.ability.name == 'Pancakes') and (not self.states.drag.is or G.CONTROLLER.HID.touch) and (not self.no_ui or self.ability.name == 'Pancakes') and not G.debug_tooltip_toggle then"
+match_indent = true
